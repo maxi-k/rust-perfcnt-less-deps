@@ -11,6 +11,8 @@ use std::slice;
 use std::str;
 
 use libc::{pid_t, strlen, MAP_SHARED};
+
+#[cfg(feature = "sampling")]
 use mmap;
 
 #[allow(dead_code, non_camel_case_types)]
@@ -18,7 +20,9 @@ mod hw_breakpoint;
 #[allow(dead_code, non_camel_case_types)]
 mod perf_event;
 
+#[cfg(feature = "parse")]
 pub mod parser;
+#[cfg(feature = "parse")]
 pub mod perf_file;
 pub mod perf_format;
 
@@ -233,7 +237,7 @@ impl PerfCounterBuilderLinux {
     //}
 
     /// Instantiate a H/W performance counter using a hardware event as described in Intels SDM.
-    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[cfg(all(feature = "x86", any(target_arch = "x86", target_arch = "x86_64")))]
     pub fn from_intel_event_description(counter: &x86::perfcnt::intel::EventDescription) -> PerfCounterBuilderLinux {
         use x86::perfcnt::intel::Tuple;
         let mut pc: PerfCounterBuilderLinux = Default::default();
@@ -792,6 +796,7 @@ impl<'a> AbstractPerfCounter for PerfCounter {
     }
 }
 
+#[cfg(feature = "sampling")]
 pub struct SamplingPerfCounter {
     pc: PerfCounter,
     map: mmap::MemoryMap,
@@ -1201,6 +1206,7 @@ pub enum Event {
     Sample(SampleRecord),
 }
 
+#[cfg(feature = "sampling")]
 impl Iterator for SamplingPerfCounter {
     type Item = Event;
 
@@ -1279,6 +1285,7 @@ impl Iterator for SamplingPerfCounter {
     }
 }
 
+#[cfg(feature = "sampling")]
 impl SamplingPerfCounter {
     pub fn new(pc: PerfCounter) -> SamplingPerfCounter {
         let size = (1 + 16) * 4096;

@@ -1,6 +1,6 @@
 [package]
 name = "perfcnt"
-version = "0.7.3"
+version = "0.7.3-mod"
 authors = ["Gerd Zellweger <mail@gerdzellweger.com>", "Brian Martin <bmartin@twitter.com>", "Jens Breitbart <jbreitbart@gmail.com>", "Marshall Pierce <marshall@mpierce.org>"]
 description = "Library to configure and read hardware performance counters in rust."
 homepage = "https://github.com/gz/rust-perfcnt"
@@ -14,21 +14,44 @@ edition = '2018'
 [target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies.x86]
 version = "0.49.0"
 features = ["performance-counter"]
+optional = true
 
 [dependencies]
 bitflags = "1.2.1"
 libc = "0.2"
-mmap = "0.1.*"
-nom = "4.2.3"
+mmap = { version = "0.1.*", optional = true }
+nom = { version = "4.2.3", optional = true }
+
+[features]
+default = []
+full = ["parse", "x86", "sampling"]
+parse = ["dep:nom"]
+x86 = ["dep:x86"]
+sampling = ["dep:mmap"]
 
 [[bin]]
 name = "perfcnt-list"
 path = "src/bin/list.rs"
+required-features = ["x86"]
 
 [[bin]]
 name = "perfcnt-parse"
 path = "src/bin/parse.rs"
+required-features = ["parse"]
 
 [[bin]]
 name = "perfcnt-stats"
 path = "src/bin/stats.rs"
+required-features = ["x86"]
+
+[[test]]
+name = "linux_generic_events"
+required-features = ["sampling"]
+
+[[example]]
+name = "context_switches"
+required-features = ["x86"]
+
+[[example]]
+name = "create_raw"
+required-features = ["x86"]
