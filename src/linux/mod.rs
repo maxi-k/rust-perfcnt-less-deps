@@ -794,13 +794,6 @@ impl<'a> AbstractPerfCounter for PerfCounter {
         let value: FileReadFormat = self.read_fd()?;
         return Ok(value.value);
     }
-
-    fn close(&mut self) -> Result<(), io::Error> {
-        match unsafe { libc::close(self.fd) } {
-            0 => Ok(()),
-            _ => Err(Error::last_os_error()),
-        }
-    }
 }
 
 #[cfg(feature = "sampling")]
